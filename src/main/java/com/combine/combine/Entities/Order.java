@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Min;
 
 @Entity
+@Table(name = "orders")
 public class Order {
 
     @Id
