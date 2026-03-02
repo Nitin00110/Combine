@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Min;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "orders",indexes = {@Index(name = "idx_order_Status",columnList = "status")})
 public class Order {
 
     @Id
@@ -29,8 +29,7 @@ public class Order {
     public Order() {
     }
 
-    public Order(Long id, String customerName, String productName, int quantity, Double pricePerUnit,Status status) {
-        this.id = id;
+    public Order( String customerName, String productName, int quantity, Double pricePerUnit,Status status) {
         this.customerName = customerName;
         this.productName = productName;
         this.quantity = quantity;
@@ -40,10 +39,6 @@ public class Order {
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getCustomerName() {

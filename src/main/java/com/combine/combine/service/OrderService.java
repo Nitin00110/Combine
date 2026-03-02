@@ -1,7 +1,12 @@
 package com.combine.combine.service;
 
+import com.combine.combine.DTO.OrderRequestDTO;
+import com.combine.combine.DTO.OrderSummaryDTO;
 import com.combine.combine.Entities.Order;
 import com.combine.combine.repo.OrderRepo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -18,24 +23,45 @@ public class OrderService {
         this.orderRepo = orderRepo;
     }
 
-    public Order createOrder(Order order) {
-        if(order.getPricePerUnit() <= 0 || order.getQuantity() <= 0){
-            throw new IllegalArgumentException("Price and Quantity must be > 0");
-        }
-        order.setStatus(Order.Status.PLACED);
-        // Postgres automatically generates the ID here
-        return orderRepo.save(order);
+    public OrderSummaryDTO createOrder(OrderRequestDTO orderRequestDTO) {
+        Order newOrder = new Order(
+                orderRequestDTO.CustomerName(),
+                orderRequestDTO.ProductName(),
+                orderRequestDTO.quantity(),
+                orderRequestDTO.pricePerUnit(),
+                Status.PLACED
+        );
+        Order savedOrder = orderRepo.save(newOrder);
+        return OrderSummaryDTO.fromEntity(savedOrder);
     }
 
-    public Order orderByID(Long id) {
-        return orderRepo.findById(id)
+    public OrderSummaryDTO orderByID(Long id) {
+        Order order =  orderRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
+        return OrderSummaryDTO.fromEntity(order);
     }
 
     public Page<OrderSummaryDTO> allOrder(int pageNumber,int pageSize) {
         Pageable pageable =  PageRequest.of(pageNumber,pageSize);
         Page<Order> orderPage = orderRepo.findAll(pageable);
         return orderPage.map(OrderSummaryDTO::fromEntity);
+    }
+
+    public Order OrderShipped(Long id){
+        Order order = orderRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("Order not Found"));
+
+
+        if(order.getStatus() == Status.SHIPPED || order.getStatus() == Status.DELIVERED){
+            throw new IllegalArgumentException("Order has already been fulfilled");
+        }
+        order.setStatus(Status.SHIPPED);
+        orderRepo.save(order);
+        return order;
+    }
+
+    public Double orderRevenue(){
+        return orderRepo.calculateTotalShippedRevenue();
     }
 
 }
