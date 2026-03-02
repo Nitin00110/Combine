@@ -32,8 +32,10 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
     }
 
-    public List<Order> allOrder() {
-        return orderRepo.findAll();
+    public Page<OrderSummaryDTO> allOrder(int pageNumber,int pageSize) {
+        Pageable pageable =  PageRequest.of(pageNumber,pageSize);
+        Page<Order> orderPage = orderRepo.findAll(pageable);
+        return orderPage.map(OrderSummaryDTO::fromEntity);
     }
 
 }
